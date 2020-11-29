@@ -3,24 +3,51 @@ require 'byebug'
 class Hangman
   attr_reader :player, :board, :secret_word
   def initialize
-    puts 'hello hangman world!'
     @player = Player.new
     @board = Board.new
+  end
+
+  def play_game
+    'Let\'s play a game'
+    until @board.incorrect_count == 6 || @board.word_guessed
+      guess = player.get_guess
+      board.eval_guess(guess)
+    end
+    if @board.word_guessed
+      puts "Congratulation! You have won!"
+    else
+      puts "Sorry, you have run out of guesses. =("
+    end
+    byebug
   end
 end
 
 class Player
+  attr_reader :name, :guessed_letters
   def initialize
-    puts 'hello playa'
+    @name = get_name
+    @guessed_letters = []
+  end
+
+  def get_name
+    puts "Welcome! What is your name?"
+    gets.chomp
+  end
+
+  def get_guess
+    puts "Please guess a letter:"
+    guess = gets.chomp
   end
 end
 
 class Board
-  attr_reader :word_bank, :secret_word
+  attr_reader :word_bank, :secret_word, :board_letters, :incorrect_count, :guesses
   def initialize
-    puts 'bored? or board'
     @word_bank = parse_word_bank
     @secret_word = select_secret_word(@word_bank, 5,12)
+    @board_letters = populate_board(@secret_word)
+    @incorrect_count = 0
+    @guesses = []
   end
 
   def parse_word_bank
@@ -39,8 +66,24 @@ class Board
     end
     word
   end
-end
-game = Hangman.new
 
-byebug
-puts game
+  def populate_board(secret_word)
+    empty_phrase = []
+    secret_word.length.times do
+      empty_phrase << "_"
+    end
+    empty_phrase
+  end
+
+  def word_guessed
+    @secret_word == @board_letters
+  end
+
+  def eval_guess(letter)
+    @incorrect_count += 1
+    puts @incorrect_count
+  end
+end
+
+game = Hangman.new
+game.play_game
