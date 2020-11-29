@@ -8,17 +8,22 @@ class Hangman
   end
 
   def play_game
-    'Let\'s play a game'
+    puts 'Let\'s play a game'
     until @board.incorrect_count == 6 || @board.word_guessed
+      board.print_board
       guess = player.get_guess
       board.eval_guess(guess)
     end
+    end_of_game
+    byebug
+  end
+
+  def end_of_game
     if @board.word_guessed
       puts "Congratulation! You have won!"
     else
       puts "Sorry, you have run out of guesses. =("
     end
-    byebug
   end
 end
 
@@ -30,22 +35,29 @@ class Player
   end
 
   def get_name
-    puts "Welcome! What is your name?"
+    puts 'Welcome! What is your name?'
     gets.chomp
   end
 
   def get_guess
-    puts "Please guess a letter:"
-    guess = gets.chomp
+    msg = 'Please guess a letter:'
+    g = ''
+    until g.length == 1 && g.between?('a', 'z') && !guessed_letters.include?(g)
+      p msg
+      g = gets.chomp.downcase
+      msg = "\nInvalid selection. Please guess again:"
+    end
+    @guessed_letters << g
+    g
   end
 end
 
 class Board
-  attr_reader :word_bank, :secret_word, :board_letters, :incorrect_count, :guesses
+  attr_reader :word_bank, :secret_word, :board_guesses, :incorrect_count, :guesses
   def initialize
     @word_bank = parse_word_bank
     @secret_word = select_secret_word(@word_bank, 5,12)
-    @board_letters = populate_board(@secret_word)
+    @board_guesses = populate_board(@secret_word)
     @incorrect_count = 0
     @guesses = []
   end
@@ -64,7 +76,7 @@ class Board
     until word.length >= 5 && word.length <= 12
       word = word_bank.sample.chomp
     end
-    word
+    word.split('')
   end
 
   def populate_board(secret_word)
@@ -76,12 +88,26 @@ class Board
   end
 
   def word_guessed
-    @secret_word == @board_letters
+    @secret_word == @board_guesses
   end
 
   def eval_guess(letter)
-    @incorrect_count += 1
-    puts @incorrect_count
+    correct_guess = false
+    @secret_word.each_with_index do |el, idx|
+      if el == letter
+        @board_guesses[idx] = letter
+        correct_guess = true
+      end
+    end
+    @guesses << letter
+    @incorrect_count += 1 if correct_guess == false
+  end
+
+  def print_board
+    puts "Secret word: #{secret_word.join('')}"
+    puts "Word: #{@board_guesses}"
+    puts "Guesses: #{@guesses}"
+    puts "Incorrect count: #{incorrect_count}"
   end
 end
 
