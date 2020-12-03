@@ -1,0 +1,37 @@
+--- !ruby/object:Hangman
+board: !ruby/object:Board
+  secret_word:
+  - b
+  - i
+  - o
+  - n
+  - i
+  - c
+  board_guesses:
+  - b
+  - i
+  - o
+  - n
+  - i
+  - _
+  incorrect_count: 4
+  guesses:
+  - b
+  - i
+  - o
+  - n
+  - x
+  - y
+  - z
+  - t
+guessed_letters:
+- b
+- i
+- o
+- n
+- x
+- y
+- z
+- t
+saved_directory: saved_directory.txt
+player: Jerry
