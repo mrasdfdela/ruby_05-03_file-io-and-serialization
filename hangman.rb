@@ -1,19 +1,30 @@
 require 'byebug'
 require 'yaml'
+require_relative 'hangman_load'
+require_relative 'hangman_save'
+require_relative 'hangman_player_input'
 
 class Hangman
-  attr_reader :player, :board, :guessed_letters, :saved_directory
-  def initialize
-    @board = Board.new
-    @guessed_letters = []
-    @saved_directory = 'saved_directory.txt'
+  attr_reader :save_file, :saved_games, :save_index
+  attr_accessor :player, :guessed_letters, :board
+  def initialize(new_game = true, idx = nil)
+    @save_file = 'saved_games.yml'
+    if new_game
+      load_saved_games
+      @save_index = nil
+    else
+      @save_index = idx
+      @player = nil
+      @guessed_letters = []
+      @board = Board.new(false)
+    end
   end
 
   def play_game
     start_game
     until @board.incorrect_count == 6 || @board.word_guessed
       board.print_board
-      guess = get_guess
+      guess = player_guess
 
       if guess == 'save'
         save_game
@@ -28,28 +39,24 @@ class Hangman
 
   def start_game
     puts "Let\'s play hangman!"
-    puts "Enter 'n' to start a new game or 'l' to load a game:"
-    entry = ''
-    until entry == 'l' || entry == 'n'
-      entry = gets.downcase.chomp
+
+    arr = saved_games_idx
+    if arr.length.positive?
+      puts 'Would you like to start a new game or load a saved game?'
+      entry = ''
+      until %w(l n).include?(entry)
+        entry = gets[0].downcase.chomp
+      end
+      entry == 'l' ? load_game(arr) : new_game
+    else
+      new_game
     end
-    entry == 'l' ? load_game : @player = get_name
   end
 
-  def load_game
-    puts "Select from the list of saved games:"
-    File.open(saved_directory, 'r').readlines.each { |line| puts line }
-
-    file = ''
-    until File.exists?("#{file}.yml")
-      puts "Enter the game name:"
-      file = gets.chomp
-    end
-    s = YAML.load(File.read("#{file}.yml"))
-
-    @player = s.player
-    @guessed_letters = s.guessed_letters
-    @board = s.board
+  def new_game
+    @board = Board.new
+    @guessed_letters = []
+    @player = player_name
   end
 
   def end_game
@@ -61,58 +68,22 @@ class Hangman
       puts 'Game saved!'
     end
   end
-
-  def get_name
-    puts 'Welcome! What is your name?'
-    gets.chomp
-  end
-
-  def get_guess
-    msg = "Please guess a letter, or enter 'save':"
-    g = ''
-
-    until g.length == 1 && g.between?('a', 'z') && !@guessed_letters.include?(g) || g == 'save'
-      p msg
-      g = gets.chomp.downcase
-      msg = "\nInvalid selection. Please guess again:"
-    end
-    g
-  end
-
-  def save_game
-    # p = @player
-    # t = Time.now.strftime("%Y%m%d_%H%M%S")
-    # save_file = File.open("#{p}_#{t}.yml", 'w') {|file|
-    #   file.write(self.to_yaml)
-    # }
-
-    # file = 'saved_games.yaml'
-    # Dir.mkdir file unless File.exists?('saved_games.yml') { |file|
-    #   file.(self.to_yaml)
-    # }
-
-    save_file = ''
-    save_file = gets.chomp
-    File.open("#{save_file}.yml", 'w') { |file|
-      file.write(self.to_yaml)
-    }
-
-    d = @saved_directory
-    File.open(d,'w') unless File.exists?(d)
-    File.open(d, 'a') {|file|
-      file.puts save_file
-    }
-  end
 end
 
 class Board
   attr_reader :word_bank, :secret_word, :board_guesses, :incorrect_count, :guesses
-  def initialize
-    # @word_bank = parse_word_bank
-    @secret_word = select_secret_word(parse_word_bank, 5,12)
-    @board_guesses = populate_board(@secret_word)
-    @incorrect_count = 0
-    @guesses = []
+  def initialize(new_game = true)
+    if new_game
+      @secret_word = select_secret_word(parse_word_bank, 5,12)
+      @board_guesses = populate_board(@secret_word)
+      @incorrect_count = 0
+      @guesses = []
+    else
+      @secret_word = []
+      @board_guesses = []
+      @incorrect_count = 0
+      @guesses = []
+    end
   end
 
   def parse_word_bank
@@ -127,7 +98,7 @@ class Board
   def select_secret_word(word_bank, min, max)
     word = ''
     until word.length >= 5 && word.length <= 12
-      word = word_bank.sample.chomp
+      word = word_bank.sample.downcase.chomp
     end
     word.split('')
   end
@@ -157,12 +128,14 @@ class Board
   end
 
   def print_board
-    puts "Secret word: #{secret_word.join('')}"
+    # puts "Secret word: #{secret_word.join('')}"
     puts "Word: #{@board_guesses}"
-    puts "Guesses: #{@guesses}"
     puts "Incorrect count: #{incorrect_count}"
+    puts "Guesses: #{@guesses}"
   end
 end
 
 game = Hangman.new
 game.play_game
+# For populating the initial save file
+# Hangman.populate_save_file

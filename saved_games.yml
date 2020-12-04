@@ -1,0 +1,56 @@
+--- !ruby/object:Hangman
+save_file: saved_games.yml
+save_index: 0
+player: Jerry
+guessed_letters:
+- s
+- t
+- a
+- i
+- l
+- r
+board: !ruby/object:Board
+  secret_word:
+  - s
+  - i
+  - e
+  - n
+  - e
+  - s
+  - e
+  board_guesses:
+  - s
+  - i
+  - _
+  - _
+  - _
+  - s
+  - _
+  incorrect_count: 4
+  guesses:
+  - s
+  - t
+  - a
+  - i
+  - l
+  - r
+--- !ruby/object:Hangman
+save_file: saved_games.yml
+save_index: 1
+player: 
+guessed_letters: []
+board: !ruby/object:Board
+  secret_word: []
+  board_guesses: []
+  incorrect_count: 0
+  guesses: []
+--- !ruby/object:Hangman
+save_file: saved_games.yml
+save_index: 2
+player: 
+guessed_letters: []
+board: !ruby/object:Board
+  secret_word: []
+  board_guesses: []
+  incorrect_count: 0
+  guesses: []
